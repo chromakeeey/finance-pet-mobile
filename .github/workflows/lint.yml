@@ -1,0 +1,35 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: 
+      - "*"
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: 16
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install deps
+        run: yarn install --frozen-lockfile --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Lint
+        run: yarn validate
+
+      - name: Test
+        run: yarn test --ci --verbose

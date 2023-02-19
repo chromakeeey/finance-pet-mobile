@@ -1,0 +1,51 @@
+{
+  "ui": {
+    "version": {
+      "title": "Version: "
+    },
+    "image_picker": {
+      "title": "What to use?",
+      "camera": "Open camera",
+      "picker": "Choose from gallery",
+      "cancel": "Cancel"
+    },
+    "modals": {
+      "confirm": {
+        "title": "Confirm?"
+      }
+    },
+    "buttons": {
+      "ok": "OK",
+      "yes": "Yes",
+      "cancel": "Cancel",
+      "save": "Save",
+      "accept": "Accept",
+      "allow": "Allow",
+      "leave": "Leave",
+      "close": "Close"
+    },
+    "fetching_state": {
+      "loading": "Loading",
+      "error": "Something went wrong",
+      "buttons": { "repeat": "Try again" }
+    },
+    "list": { "empty": "Empty list" },
+    "http_client": {
+      "error": {
+        "title": "Something went wrong",
+        "description": "Please try again later"
+      }
+    },
+    "validation": {
+      "nonempty": "Can not be empty"
+    },
+    "select": {
+      "not_selected": "Not selected"
+    }
+  },
+  "screens": {
+    "home": {
+      "title": "Home"
+    }
+  }
+}

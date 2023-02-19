@@ -1,0 +1,38 @@
+{
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "lib": ["ESNext"],
+    "jsx": "react-native",
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "baseUrl": "src",
+    "paths": {
+      "@assets/*": ["assets/*"],
+      "@uikit/*": ["uikit/*"],
+      "@screens/*": ["screens/*"],
+      "@api": ["common/api/index"],
+      "@models/*": ["common/models/*"],
+      "@api/*": ["common/api/*"],
+      "@tools/*": ["common/tools/*"],
+      "@hooks": ["common/hooks/index"],
+      "@hooks/*": ["common/hooks/*"],
+      "@mocks/*": ["common/mocks/*"],
+      "@navigation/*": ["common/navigation/*"],
+      "@navigation": ["common/navigation/index.ts"],
+      "@constants/*": ["common/constants/*"],
+      "@i18n": ["common/i18n/index"]
+    }
+  },
+  "exclude": ["node_modules", "babel.config.js", "jest.config.js"]
+}

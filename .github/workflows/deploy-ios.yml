@@ -1,0 +1,94 @@
+name: Deploy iOS
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+env:
+  PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+  DYNAMIC_URL_SIGNUP: ${{ secrets.DYNAMIC_URL_SIGNUP }}
+  GLEAP_TOKEN: ${{ secrets.GLEAP_TOKEN }}
+  API_URL: ${{ secrets.API_URL }}
+
+jobs:
+  deploy:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: 'get_version'
+        uses: battila7/get-version-action@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: 16
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install npm deps
+        run: yarn install --frozen-lockfile --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Lint
+        run: yarn validate
+
+      - name: Test
+        run: yarn test --ci --verbose
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: false
+
+      - name: Install ruby deps
+        run: bundle lock --add-platform x86_64-linux && bundle install
+        working-directory: ios
+
+      # - name: Install fastlane plugins
+      #   run: bundle exec fastlane install_plugins
+      #   working-directory: ios
+
+      - name: Set env variables for stage
+        run: echo "STAGE=stage" >> $GITHUB_ENV
+        if: ${{ steps.get_version.outputs.prerelease }}
+
+      - name: Set env variables for prod
+        run: echo "STAGE=prod" >> $GITHUB_ENV
+        if: ${{ !steps.get_version.outputs.prerelease }}
+
+      - name: Set VERSION_NAME env variable
+        run: echo "VERSION_NAME=${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}" >> $GITHUB_ENV
+
+      - name: Set version code
+        run: bundle exec fastlane ios version
+        working-directory: ios
+
+      - name: Setup git
+        run: git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com" && git config --global user.name "github-actions[bot]"
+        if: ${{ env.STAGE == 'prod' }}
+
+      - name: Bump npm package version
+        run: npm version ${{ env.VERSION_NAME }} --git-tag-version=false --allow-same-version
+        if: ${{ env.STAGE == 'prod' }}
+
+      - name: Commit bump version
+        run: git commit -a -m "bump ios version to ${{ env.VERSION_NAME }}"
+        if: ${{ env.STAGE == 'prod' }}
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        if: ${{ env.STAGE == 'prod' }}
+        with:
+          force: true

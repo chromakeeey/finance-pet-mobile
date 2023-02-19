@@ -1,0 +1,141 @@
+name: Deploy Android
+
+on:
+  release:
+    types: [created]
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+env:
+  ANDROID_BUILD_RESULT_PATH: android/app/build/outputs/apk/release
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: 'get_version'
+        uses: battila7/get-version-action@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v3.4.1
+        with:
+          node-version: 16
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install npm deps
+        run: yarn install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Lint
+        run: yarn validate
+
+      - name: Test
+        run: yarn test --ci --verbose
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: false
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install ruby deps
+        run: bundle lock --add-platform x86_64-linux && bundle install
+        working-directory: android
+
+      - name: Install fastlane plugins
+        run: bundle exec fastlane install_plugins
+        working-directory: android
+
+      - name: Decode Keystore File
+        uses: timheuer/base64-to-file@v1.1
+        id: android_keystore
+        with:
+          fileName: 'android_keystore.keystore'
+          encodedString: ${{ secrets.KEYSTORE_FILE }}
+
+      - name: Set env variables for stage
+        run: echo "STAGE=stage" >> $GITHUB_ENV
+        if: ${{ steps.get_version.outputs.prerelease }}
+
+      - name: Set env variables for prod
+        run: echo "STAGE=prod" >> $GITHUB_ENV
+        if: ${{ !steps.get_version.outputs.prerelease }}
+
+      - name: Set VERSION_NAME env variable
+        run: echo "VERSION_NAME=${{ steps.get_version.outputs.major }}.${{ steps.get_version.outputs.minor }}.${{ steps.get_version.outputs.patch }}" >> $GITHUB_ENV
+
+      - name: Create env file
+        run: |
+          echo "PACKAGE_NAME=${{ secrets.PACKAGE_NAME }}" > .env
+          echo "DYNAMIC_URL_SIGNUP=${{ secrets.DYNAMIC_URL_SIGNUP }}" >> .env
+          echo "GLEAP_TOKEN=${{ secrets.GLEAP_TOKEN }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+
+      - name: Build Android
+        run: chmod +x gradlew && bundle exec fastlane android beta
+        working-directory: android
+        env:
+          KEYSTORE_FILE: ${{ steps.android_keystore.outputs.filePath }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS}}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+
+      - name: Set APK name
+        run: echo "APK_NAME=${{ steps.get_version.outputs.version }}.apk" >> $GITHUB_ENV
+
+      - name: Rename APK
+        run: mv ${{ env.ANDROID_BUILD_RESULT_PATH }}/app-release.apk ${{ env.ANDROID_BUILD_RESULT_PATH }}/${{ env.APK_NAME }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.APK_NAME }}
+          path: ${{ env.ANDROID_BUILD_RESULT_PATH }}/${{ env.APK_NAME }}
+          retention-days: 2
+
+      - name: Setup git
+        run: git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com" && git config --global user.name "github-actions[bot]"
+        if: ${{ env.STAGE == 'prod' }}
+
+      - name: Bump npm package version
+        run: npm version ${{ env.VERSION_NAME }} --git-tag-version=false --allow-same-version
+        if: ${{ env.STAGE == 'prod' }}
+
+      - name: Commit bump version
+        run: git commit -a -m "bump android version to ${{ env.VERSION_NAME }}"
+        if: ${{ env.STAGE == 'prod' }}
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        if: ${{ env.STAGE == 'prod' }}
+        with:
+          force: true
+
+      - name: Upload APK to slack
+        uses: adrey/slack-file-upload-action@master
+        continue-on-error: true
+        with:
+          token: ${{ secrets.SLACK_TOKEN }}
+          path: ${{ env.ANDROID_BUILD_RESULT_PATH }}/${{ env.APK_NAME }}
+          channel: ${{ secrets.SLACK_CHANNEL }}
+          filetype: apk
