@@ -37,7 +37,7 @@ const CreateCheckScreen = () => {
 
   const {
     control,
-    formState: { isValid, errors },
+    formState: { isValid },
     watch,
     setValue,
     handleSubmit,

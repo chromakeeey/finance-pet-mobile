@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import tw from '@tools/tailwind'
 import { Button } from '@uikit/molecules'
 import { TextInput } from '@uikit/molecules/form'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -16,9 +15,6 @@ export interface WelcomeScreenForm {
 }
 
 const SignUpScreen = () => {
-  const [email, setEmail] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
-
   const userMutations = useUserMutations()
 
   const {

@@ -1,4 +1,4 @@
-import { useCheckbook, useUser, useUserMutations } from '@api'
+import { useCheckbook, useUserMutations } from '@api'
 import useCheckDate from '@hooks/useCheckDate'
 import { useNavigation } from '@react-navigation/native'
 import { formatMonthToString } from '@tools/date'
@@ -13,7 +13,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native'
 import MonthPicker from 'react-native-month-year-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -21,8 +21,6 @@ import { RootStackScreenProps } from '.'
 
 const HomeScreen = () => {
   const userMutations = useUserMutations()
-
-  const user = useUser()
 
   const [pickerShow, setPickerShow] = useState<boolean>(false)
 

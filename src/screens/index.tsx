@@ -2,7 +2,7 @@ import { useUser } from '@api'
 import {
   createStackNavigator,
   StackScreenProps,
-  TransitionPresets
+  TransitionPresets,
 } from '@react-navigation/stack'
 import { WelcomeScreen } from '@screens/auth'
 import SignUpScreen from './auth/SignUp'

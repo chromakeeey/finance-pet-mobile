@@ -5,15 +5,12 @@ import '@i18n'
 import { NavigationContainer } from '@react-navigation/native'
 import RootRouter from '@screens/index'
 import tw from '@tools/tailwind'
-import { useTranslation } from 'react-i18next'
 import { StatusBar } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useDeviceContext } from 'twrnc'
 
 const App = () => {
   useDeviceContext(tw)
-
-  const { t } = useTranslation()
 
   return (
     <CheckDateProvider>

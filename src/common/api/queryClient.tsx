@@ -4,7 +4,7 @@ import {
   focusManager,
   QueryClient,
   QueryClientProvider as BaseQueryClientProvider,
-  QueryFunction
+  QueryFunction,
 } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import ms from 'ms'

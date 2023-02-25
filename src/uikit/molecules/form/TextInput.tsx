@@ -1,7 +1,7 @@
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import {
   TextInput as RNTextInput,
-  TextInputProps as RNTextInputProps
+  TextInputProps as RNTextInputProps,
 } from 'react-native'
 
 export interface TextInputProps<T extends FieldValues>

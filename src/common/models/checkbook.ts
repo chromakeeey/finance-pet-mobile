@@ -1,4 +1,3 @@
-
 export interface CheckCategory {
   category_name: string
   category_emoji: string
