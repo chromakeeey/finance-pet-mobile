@@ -1,9 +1,13 @@
-import { DocsSVG } from '@assets/icons'
+import { Provider } from '@ant-design/react-native'
+import { QueryClientProvider } from '@api/queryClient'
+import { CheckDateProvider } from '@hooks/useCheckDate'
 import '@i18n'
+import { NavigationContainer } from '@react-navigation/native'
+import RootRouter from '@screens/index'
 import tw from '@tools/tailwind'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
-import Config from 'react-native-config'
+import { StatusBar } from 'react-native'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useDeviceContext } from 'twrnc'
 
 const App = () => {
@@ -12,13 +16,18 @@ const App = () => {
   const { t } = useTranslation()
 
   return (
-    <View style={tw`flex-1 justify-center items-center`}>
-      <Text style={tw`text-lg`}>Hi, let's check if everything works</Text>
-      <Text style={tw`text-lg`}>i18n: {t('screens.home.title')}</Text>
-      <Text>Config: {JSON.stringify(Config, null, 2)}</Text>
-      <Text style={tw`text-lg`}>SVG:</Text>
-      <DocsSVG />
-    </View>
+    <CheckDateProvider>
+      <Provider>
+        <SafeAreaProvider>
+          <QueryClientProvider>
+            <NavigationContainer>
+              <RootRouter />
+              <StatusBar barStyle="light-content" />
+            </NavigationContainer>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </Provider>
+    </CheckDateProvider>
   )
 }
 

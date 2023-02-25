@@ -4,12 +4,13 @@ import {
   focusManager,
   QueryClient,
   QueryClientProvider as BaseQueryClientProvider,
-  QueryFunction,
+  QueryFunction
 } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 import ms from 'ms'
 import type { FC } from 'react'
 import { useCallback, useEffect, useRef } from 'react'
-import { AppState, AppStateStatus, Platform } from 'react-native'
+import { Alert, AppState, AppStateStatus, Platform } from 'react-native'
 
 const defaultQueryFunction: QueryFunction = async ({ queryKey }) =>
   httpClient.get(queryKey.join('/')).then(resp => resp.data)
@@ -23,6 +24,16 @@ const queryClient = new QueryClient({
       refetchOnReconnect: true,
       refetchOnWindowFocus: true,
       retry: false,
+    },
+    mutations: {
+      onError: error => {
+        console.log('Error', error)
+
+        if (error instanceof AxiosError) {
+          console.log('instance of Axios')
+          Alert.alert('Error', error.response?.data?.error || 'Unknown error')
+        }
+      },
     },
   },
 })

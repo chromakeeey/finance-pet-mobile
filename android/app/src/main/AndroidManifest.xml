@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.whitedigital.smart_terminal">
+  package="com.finance.pet">
 
     <uses-permission android:name="android.permission.INTERNET" />
 

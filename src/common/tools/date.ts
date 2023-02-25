@@ -31,3 +31,22 @@ export const formatDate = (
 
 export const getTimeZoneOffset = (timestamp: number) =>
   new Date(timestamp).getTimezoneOffset() / -60
+
+export const formatMonthToString = (month: number) => {
+  const MONTH_NAMES: Record<number, string> = {
+    1: 'Січень',
+    2: 'Лютий',
+    3: 'Березень',
+    4: 'Квітень',
+    5: 'Травень',
+    6: 'Червень',
+    7: 'Липень',
+    8: 'Серпень',
+    9: 'Вересень',
+    10: 'Жовтень',
+    11: 'Листопад',
+    12: 'Грудень',
+  }
+
+  return MONTH_NAMES[month]
+}
